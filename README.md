@@ -31,17 +31,20 @@ see: http://csharpening.net/?p=1427
 The registry tracks where components are deployed on a local System and remote hosts.
 COM classes, interfaces and type libraries are listed by GUIDs called Class Identifiers (ClsID) in the registry,
 under the registry path HKEY_CLASSES_ROOT\CLSID or HKEY_CLASSES_ROOT\Wow6432Node\CLSID for classes and HKEY_CLASSES_ROOT\Interface or HKEY_CLASSES_ROOT\Wow6432Node\interface for interfaces.
+Interfaces are not considered within this module.
 
 The registry keys directly under HKEY_CLASSES_ROOT are not considered within this module.
 COM libraries use the registry to locate either the correct local libraries for each COM object or the network location for a remote service.
 The Regsvr32.exe (Microsoft Register Server) command-line tool is a command-line utility in Microsoft Windows operating systems for registering and unregistering DLLs and ActiveX controls out of .dll, .ocx or .exe files in the Windows Registry.	
 
+####Cache the registry entrys on load of the module
+
 The Registry entrys are changing only if a new COM Component ist registered or unregistered (or Sofware was installed).
 This happens not very often so this ComPower module take use of an array as a cache mechanism.
 This array is filled up on load of the ComPower module, so loading the module takes a while.
 Nearly all functions out of this module are working with this information out of this cache.
-The advantage is, that to read it informations out of the cache is faster then reading out of the registry.
-If you like use fresch registry informations out of the registry use the -DoNotUseCache parameter of the functions.
+The advantage is, to read informations out of the cache is faster then reading out of the registry.
+If you like to use fresch registry informations out of the registry use the -DoNotUseCache parameter of the functions.
 If you use the -DoNotUseCache of any function, the cache is also freshed up.
 
 ---------------------------------------------------------------------------
@@ -144,6 +147,10 @@ $XlWorkb = New-Object -ComObject 'PowerPoint.Application' -Verbose -Strict
 ```
 (For more information see in the documentation of the associated functions of this ComPower module)
 
+---
+
+###Get a list ot the running objects out of the Running Object Table (ROT)
+
 If you like to know which COM objects currently running on y a system, take a look into Running Object Table (ROT).
 
 For this you can use the Get-ComRot function:
@@ -154,13 +161,12 @@ Get-ComRot
 # Get information of all running objects out of the Running Object Table (ROT) with ProgID informations out of the registry
 Get-ComRot -EnrichWithRegistry
 ```
----
-
-###Get a list ot the running objects out of the Running Object Table (ROT)
 
 The Get-ComRot function returns a List of Pamk_COM_ROT.RunningObjectTableComponentInfo objects.
 The Pamk_COM_ROT.RunningObjectTableComponentInfo is a custom .NET class and
 it is similar to the System.Runtime.InteropServices.ComTypes.IMoniker interface but the Pamk_COM_ROT.RunningObjectTableComponentInfo is not bound to the COM object and has no reference to it.
+
+---
 
 ### Get a reference to an running object out of the Running Object Table (ROT)
 
@@ -177,6 +183,9 @@ $WordDoc = (Get-ComRot | Where-Object { $_.DisplayName -eq 'Document1'}).GetInst
 # Get a moniker (a reference) to an Microsoft word document COM object with the DisplayName 'Document1' out of the Running Object Table (ROT)
 $WordDoc = Get-ComRot | Where-Object { $_.DisplayName -eq 'Document1'} | Get-ComRotIntance
 ```
+
+###Remove a COM object from the Windows PowerShell process
+
 You can clean up a COM object (moniker) with the help of the Remove-ComObject
 Because the COM objects live in unmanage memory and Windows PowerShell lives in managed .NET memory the binding to each other is VERY fragile!
 So it is very hard to clean up a COM object from .NET (Windows PowerShell).
