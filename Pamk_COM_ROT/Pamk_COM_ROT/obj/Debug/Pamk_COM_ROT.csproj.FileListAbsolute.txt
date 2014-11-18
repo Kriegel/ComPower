@@ -1,0 +1,6 @@
+d:\austausch\eigene dokumente\visual studio 2013\Projects\Pamk_COM_ROT\Pamk_COM_ROT\bin\Debug\Pamk_COM_ROT.exe.config
+d:\austausch\eigene dokumente\visual studio 2013\Projects\Pamk_COM_ROT\Pamk_COM_ROT\bin\Debug\Pamk_COM_ROT.exe
+d:\austausch\eigene dokumente\visual studio 2013\Projects\Pamk_COM_ROT\Pamk_COM_ROT\bin\Debug\Pamk_COM_ROT.pdb
+d:\austausch\eigene dokumente\visual studio 2013\Projects\Pamk_COM_ROT\Pamk_COM_ROT\obj\Debug\Pamk_COM_ROT.csprojResolveAssemblyReference.cache
+d:\austausch\eigene dokumente\visual studio 2013\Projects\Pamk_COM_ROT\Pamk_COM_ROT\obj\Debug\Pamk_COM_ROT.exe
+d:\austausch\eigene dokumente\visual studio 2013\Projects\Pamk_COM_ROT\Pamk_COM_ROT\obj\Debug\Pamk_COM_ROT.pdb
