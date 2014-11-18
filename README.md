@@ -1,6 +1,8 @@
 ComPower
 ========
 
+![alt text](https://github.com/Kriegel/ComPower/blob/master/ComPower.png "ComPower Logo")
+
 ##TOPIC
 
 ComPower Module Overview
