@@ -1,0 +1,264 @@
+﻿TOPIC
+    ComPower Module Overview
+
+	Author: Peter Kriegel
+	Version 1.0.0. 13.November.2014
+
+SHORT DESCRIPTION
+	ComPower is a Windows PowerShell module to work with the Component Object Model (COM).
+	COM is also known under the terms “Object Linking and Embedding” (OLE) and ActiveX.
+
+LONG DESCRIPTION
+
+	ComPower is a Windows PowerShell module to work with the Component Object Model (COM).
+	COM is also known under the terms “Object Linking and Embedding” (OLE) and ActiveX.
+	
+	This Module works manly with COM classes (called  components here) which are registerd inside the Windows Registry,
+	or running objects (moniker) wich can be found in the Running Object Table (ROT) of a system.
+	
+	In this version of the ComPower module, Registration-free COM components and Interfaces are not supported.
+	Adam Driscoll has written a Blog post about: Using Unregistered COM Objects in PowerShell
+	see: http://csharpening.net/?p=1427
+
+	The registry tracks where components are deployed on a local System and remote hosts.
+	COM classes, interfaces and type libraries are listed by GUIDs called Class Identifiers (ClsID) in the registry,
+	under the registry path HKEY_CLASSES_ROOT\CLSID or HKEY_CLASSES_ROOT\Wow6432Node\CLSID for classes and HKEY_CLASSES_ROOT\Interface or HKEY_CLASSES_ROOT\Wow6432Node\interface for interfaces.
+	The registry keys directly under HKEY_CLASSES_ROOT are not considered within this module.
+	COM libraries use the registry to locate either the correct local libraries for each COM object or the network location for a remote service.
+	The Regsvr32.exe (Microsoft Register Server) command-line tool is a command-line utility in Microsoft Windows operating systems for registering and unregistering DLLs and ActiveX controls out of .dll, .ocx or .exe files in the Windows Registry.	
+	
+	The Registry entrys are changing only if a new COM Component ist registered or unregistered (or Sofware was installed).
+	This happens not very often so this ComPower module take use of an array as a cache mechanism.
+	This array is filled up on load of the ComPower module, so loading the module takes a while.
+	Nearly all functions out of this module are working with this information out of this cache.
+	The advantage is, that to read it informations out of the cache is faster then reading out of the registry.
+	If you like use fresch registry informations out of the registry use the -DoNotUseCache parameter of the functions.
+	If you use the -DoNotUseCache of any function, the cache is also freshed up.
+
+	---------------------------------------------------------------------------
+	
+	This module contains the following function (script-cmdlets):
+
+		Get-ComRegistered
+			Function to list all registered COM classes of a system from the registry key CLSID.
+			This Function is a simple way to replace tools like: OLE/COM Object Viewer (oleview.exe), RegDllView, OLE/COM Object Explorer, Objektbrowser or ActiveXHelper
+
+		Get-ComRot
+			Function to list all COM objects out of the Running Object Table (ROT) and get direct access to the Running Object Table (ROT)
+			With the help of this function you can also get a reference of an COM object out of the ROT elective.
+			The Running Object Table (ROT) is a machine-wide table in which objects can register themselves.
+
+		Get-ComRotIntance
+			Function to obtain a reference to the instance of a COM object out of the Running Object Table (ROT)
+			So this method is similar to the Visual Basic method GetObject().
+			The advantage ot this function over the Visual Basic method GetObject() is the freedom to choose which object you like to have (direct access to the object reference). 
+		
+		Get-ComRotRegistered
+			Function to add inoformation out of the registry to a COM object out of the Runnig Object Table (ROT)
+			This function is a helper function for the Get-ComRot function.
+			This function adds ProgID information out of the registry to a object returned by the Get-ComRot function
+
+		New-Object
+			Proxy-function to extend the origin New-Object Cmdlet.
+			The origin New-Object Cmdlet can instantiate COM objects only over their Programmatic Identifier (ProgID).
+			Some COM objects do not have a ProgID or the ProgID is ambiguous so you have problems to get this COM object.
+			With this New-Object function you can now create an instance of a COM object from ClsID or a file path.
+
+		Remove-ComObject
+			Function to help to releases a COM object from the Windows PowerShell process space.
+			Because the COM objects live in unmanage memory and Windows PowerShell lives in managed .NET memory the binding to each other is VERY fragile!
+			So it is very hard to clean up a COM object from .NET (Windows PowerShell).
+			This function trys to help you to get rid of a COM object.
+
+	---------------------------------------------------------------------------
+		
+	The first thing is to get knowledge which Component Object Model COM objects are available on a Windows System.
+	
+		The function Get-ComRegistered is to get all COM objects, that are registered in the registry keys:
+		"HKEY_CLASSES_ROOT\CLSID" and "HKEY_CLASSES_ROOT\Wow6432Node\CLSID"
+
+		Example call:
+
+		# Get all registered COM objects out of the registry
+		Get-ComRegistered
+
+		# Get only registered COM objects which have a Programmatic Identifier ProgID 
+		Get-ComRegistered | Where-Object {$_.ProgID}
+
+		# Get registered COM objects which have the Programmatic Identifier like Excel.Application 
+		Get-ComRegistered | Where-Object {$_.ProgID -like '*Excel.Application*'}
+
+		# Get registered COM objects which have the Programmatic Identifier like *Word* or the friendly classname *Word* 
+		Get-ComRegistered | Where-Object {$_.ProgID -like '*Word*' -or $_.FriendlyClassName -like '*Word*' }
+
+		# Get registered COM objects which have the Class Identifiers (ClsID) guid like ‘*000209ff-0000-0000-c000-000000000046*’
+		Get-ComRegistered | Where-Object {$_.ClsID -like '*000209ff-0000-0000-c000-000000000046*'}
+
+
+	The second thing you probably like to do is to create an instance of an Component Object Model COM object and get a reference to it with Windows PowerShell.
+	
+		In Visual Basic the method CreateObject() and GetObject() are used for that.
+
+		This module uses a proxy command to extend the origin cmdlet: Microsoft.PowerShell.Utility\New-Object to create instances of COM object 3 different ways:
+
+		  1. Create an instance from a persistent COM object from disk by use of a file path.
+		  (Microsoft Office documents are persistent COM objects on disk *.xlsx, *.docx, *.pptx …)
+
+			# Create an Excel Workbook object from file path, use –Strict to check if document is already running
+			$XlWorkb = New-Object -ComObject 'C:\users\Jon\Doc\Chart.xlsx' -Verbose –Strict
+
+		  2. Create an instance of a COM object by use of its Class Identifier ClsID.
+		  (ClsID is a worldwide unique GUID which identifies a COM object)
+
+			# Create an Microsoft Word Application object from ClsID-Guid use –Strict to check if Word is already running
+			$WordApp = New-Object -ComObject '000209ff-0000-0000-c000-000000000046' -Verbose –Strict
+
+		  3. Create an instance of a COM object by use of its Programmatic Identifier (ProgID).
+		  (A ProgID is one or more alias name(s) to an COM object. Like the CLSID, the ProgID identifies a class, but with less precision.)
+
+			# Create an PowerPoint Applicatin object from ProgID, use –Strict to check if interop assembly is used
+			$XlWorkb = New-Object -ComObject 'PowerPoint.Application' -Verbose -Strict
+
+		  (For more information see in the documentation of the associated functions of this ComPower module)
+		  
+	If you like to know which COM objects currently running on y a system, take a look into Running Object Table (ROT).
+		
+		For this you can use the Get-ComRot function:
+		
+		# Get information of all running objects out of the Running Object Table (ROT)
+		Get-ComRot
+		
+		# Get information of all running objects out of the Running Object Table (ROT) with ProgID informations out of the registry
+		Get-ComRot -EnrichWithRegistry
+		
+		The Get-ComRot function returns a List of Pamk_COM_ROT.RunningObjectTableComponentInfo objects.
+		The Pamk_COM_ROT.RunningObjectTableComponentInfo is a custom .NET class and
+		it is similar to the System.Runtime.InteropServices.ComTypes.IMoniker interface but the Pamk_COM_ROT.RunningObjectTableComponentInfo is not bound to the COM object and has no reference to it.
+		
+	If you need a reference to an running object out of the Running Object Table (ROT) you can obtain it in 2 ways:
+		(This method is similar to the Visual Basic method GetObject() but you have direct acces to each object.)
+		
+		1. use the GetInstance() method of a Pamk_COM_ROT.RunningObjectTableComponentInfo object returned by the Get-ComRot function
+		# Get a moniker (a reference) to an Microsoft word document COM object with the DisplayName 'Document1' out of the Running Object Table (ROT)
+		$WordDoc = (Get-ComRot | Where-Object { $_.DisplayName -eq 'Document1'}).GetInstance()
+
+		2. You can use the Get-ComRotInstance function to obtain a reference
+		# Get a moniker (a reference) to an Microsoft word document COM object with the DisplayName 'Document1' out of the Running Object Table (ROT)
+		$WordDoc = Get-ComRot | Where-Object { $_.DisplayName -eq 'Document1'} | Get-ComRotIntance
+  
+	You can clean up a COM object (moniker) with the help of the Remove-ComObject
+		Because the COM objects live in unmanage memory and Windows PowerShell lives in managed .NET memory the binding to each other is VERY fragile!
+		So it is very hard to clean up a COM object from .NET (Windows PowerShell).
+		Please read the full help of this function!
+  
+	---------------------------------------------------------------------------
+	  
+	COM wordings
+	  
+		Class Identifiers (ClsID)
+
+			A class identifier (ClsID) is a Type of globally unique identifier (GUID), that identifies a COM class object.
+			ClsIDs are guaranteed to be unique, so they can be used to identify a Component Object Model (COM)component without any doubt.
+
+		Programmatic Identifier (ProgID)
+
+			A programmatic identifier (ProgID) is a registry entry that can be associated with a CLSID.
+			The ProgID key maps a user-friendly string to a CLSID, its an alias for an ClsID.
+			Like the CLSID, the ProgID identifies a class, but with less precision.
+			Use a ProgID in programming situations where it is not possible to use a CLSID.
+			ProgIDs are not guaranteed to be unique, so they can be used only where name collisions do not occur.
+
+		VersionIndependentProgID
+
+			Associates a ProgID with a CLSID. It is used to determine the latest version of an object application.
+			Like the ProgID, the version-independent ProgID can be registered with a human-readable name.
+
+			Applications must register a version-independent programmatic identifier under the VersionIndependentProgID key.
+			The version-independent ProgID refers to the application's class and does not change from version to version,
+			instead remaining constant across all versions.
+			It is used with macro languages and refers to the currently installed version of the application's class.
+			The version-independent ProgID must correspond to the name of the latest version of the object application.
+
+		Moniker
+
+			A moniker in COM is not only a way to identify an object—a moniker is also implemented as an object.
+			This object provides services allowing a component to obtain a pointer to the object identified by the moniker.
+			This process is referred to as binding.
+			Monikers are objects that implement the IMoniker interface and are generally implemented in DLLs as component objects.
+			OLE uses monikers to connect to and activate objects, whether they are in the same machine or across a network.
+			They are also used to identify, connect to, and run OLE compound document link objects.
+			In this case, the link source acts as the moniker provider and the container holding the link object acts as the moniker client.
+
+			Composit Moniker
+
+			A moniker may refer to any single object, or may be a composite made of a number of separate monikers,
+			each of which refers to a particular instantiation of an object.
+			Its primary use is for managing compound documents, but it is also used for transferring data between different applications using drag and drop and clipboard operations.
+			Compound documents enable users working within a single application to manipulate data written in various formats and derived from multiple sources.
+			For example, a user might insert into a word processing document a graph created in a second application and a sound object created in a third application.
+			Activating the graph causes the second application to load its user interface, or at least that part containing tools necessary to edit the object.  
+
+			Some famous  moniker provider are (they are case sensitive!):
+			File://  to acces the file System. Example: File://C:/users/Leo/Chart.xlsx is a moniker to an Excel-COM object
+			WinNT:// to access Local system and Active Directory with Windows NT reduced abillities
+			Example: WinNT://ComputerName/UserName is a moniker for an user-object  
+			LDAP:// to access Active Directory and other LDAP based datasores LDAP://CN=Jeff Smith,CN=users,DC=fabrikam,DC=com is a moniker to an user-object
+			HTTP:// to access the HTTP web protocoll. Example: HTTP://www.microsoft.com is a moniker to an website
+
+		Registration-free COM components
+
+			Registration-Free COM (RegFree COM) is a technology introduced with Windows XP that allows Component Object Model (COM) components to store activation metadata and CLSID (Class ID) for the component without using the registry.
+			Instead, the metadata and CLSIDs of the classes implemented in the component are declared in an assembly manifest (described using XML),
+			stored either as a resource in the executable or as a separate file installed with the component.
+			This allows multiple versions of the same component to be installed in different directories,
+			described by their own manifests, as well as XCOPY deployment.
+			This technique has limited support for EXE COM servers and cannot be used for system-wide components such as MDAC, MSXML, DirectX or Internet Explorer.
+			In this version of the ComPower module, Registration-free COM components are not supported.
+		
+		Running Object Table (ROT)
+		
+			The Running Object Table (ROT) is a machine-wide table in which objects can register themselves.
+			Because it is optional for a COM object to register within the ROT you can not find all running COM Objects inside this table
+			Even sometimes you will find only one entry in the ROT for an COM object which runs many instances. This is by design of the COM producer.			
+
+	---------------------------------------------------------------------------
+			
+	For Documentation of the Component Object Model (COM)see Microsoft Dev Center:
+	  COM Technical Overview
+	  http://msdn.microsoft.com/en-us/library/windows/desktop/ff637359%28v=vs.85%29.aspx
+
+	For Documentation of the Registry portion which holds the Component Object Model (COM)components see Microsoft Dev Center:
+	  Registering COM Applications
+	  http://msdn.microsoft.com/en-us/library/windows/desktop/ms683954%28v=vs.85%29.aspx
+
+	Because the COM objects live in unmanage memory and Windows PowerShell lives in managed .NET memory the binding to each other is VERY fragile!
+	So it is very hard to clean up a COM object from .NET (Windows PowerShell).
+
+		 Spirits that I've cited
+		 My commands ignore.
+		  (Johann Wolfgang von Goethe)
+
+	There are millons of discussions in the internet how to clean up COM objects correctly from .NET.
+	For discussions to get rid of a COM object, see the documentation to the Remove-ComObject function!
+
+	A very good explanation of the relationchip of COM and .NET i found here:
+	  Invoking COM Components from C#
+	  http://www.drdobbs.com/invoking-com-components-from-c/184414718
+
+	  Introduction to Interoperability Between COM and .NET
+	  http://msdn.microsoft.com/en-us/library/office/bb610378%28v=office.15%29.aspx
+
+	Links to discussions to clean up COM objects from .NET:
+		http://stackoverflow.com/questions/2926205/does-every-excel-interop-object-need-to-be-released-using-marshal-releasecomob
+		http://stackoverflow.com/questions/1471927/find-references-to-the-object-in-runtime
+		http://www.drdobbs.com/invoking-com-components-from-c/184414718
+		http://discuss.fogcreek.com/dotnetquestions/default.asp?cmd=show&ixPost=6405
+		http://blogs.msdn.com/b/cbrumme/archive/2003/04/16/51355.aspx
+		http://support2.microsoft.com/default.aspx?scid=kb;EN-US;Q317109
+	
+	List of Tools for Browsing and exploring COM, ActiveX and OLE objects
+		http://muzso.hu/2012/07/24/browsing-and-exploring-com-activex-and-ole-objects	
+
+	
+	Roadmap:
+	   Extend the [System.__ComObject] type with selfdestruction Script-Method (PSRemove($This))

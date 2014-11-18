@@ -1,0 +1,7 @@
+E:\Cscharp_Projekte\COM-ROT\COM-ROT\bin\Debug\COM-ROT.exe
+E:\Cscharp_Projekte\COM-ROT\COM-ROT\bin\Debug\COM-ROT.pdb
+E:\Cscharp_Projekte\COM-ROT\COM-ROT\obj\Debug\COM-ROT.csprojResolveAssemblyReference.cache
+E:\Cscharp_Projekte\COM-ROT\COM-ROT\obj\Debug\COM-ROT.exe
+E:\Cscharp_Projekte\COM-ROT\COM-ROT\obj\Debug\COM-ROT.pdb
+D:\Austausch\PowerShell\Entwicklung\COM\Com\COM-ROT\COM-ROT\obj\Debug\COM-ROT.exe
+D:\Austausch\PowerShell\Entwicklung\COM\Com\COM-ROT\COM-ROT\obj\Debug\COM-ROT.pdb
