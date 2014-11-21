@@ -17,6 +17,8 @@ COM is also known under the terms “Object Linking and Embedding” (OLE) and A
 
 ##LONG DESCRIPTION
 
+For additional informations read : Get-Help 'about_ComPower' ; after loading the module!
+
 ComPower is a Windows PowerShell module to work with the Component Object Model (COM).
 COM is also known under the terms “Object Linking and Embedding” (OLE) and ActiveX.
 
@@ -87,6 +89,12 @@ Function to help to releases a COM object from the Windows PowerShell process sp
 Because the COM objects live in unmanage memory and Windows PowerShell lives in managed .NET memory the binding to each other is VERY fragile!
 So it is very hard to clean up a COM object from .NET (Windows PowerShell).
 This function trys to help you to get rid of a COM object.
+
+>Bevor you create a COM object with .NET or Windows PowerShell!
+>Take my advice! Allways think twice!
+>&nbsp;&nbsp;&nbsp;&nbsp;Spirits that I've cited<br />
+>&nbsp;&nbsp;&nbsp;&nbsp;My commands ignore.<br />
+>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(Johann Wolfgang von Goethe)
 
 ---------------------------------------------------------------------------
 
@@ -190,3 +198,9 @@ You can clean up a COM object (moniker) with the help of the Remove-ComObject
 Because the COM objects live in unmanage memory and Windows PowerShell lives in managed .NET memory the binding to each other is VERY fragile!
 So it is very hard to clean up a COM object from .NET (Windows PowerShell).
 Please read the full help of this function!
+
+>Bevor you create a COM object with .NET or Windows PowerShell!
+>Take my advice! Allways think twice!
+>&nbsp;&nbsp;&nbsp;&nbsp;Spirits that I've cited<br />
+>&nbsp;&nbsp;&nbsp;&nbsp;My commands ignore.<br />
+>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(Johann Wolfgang von Goethe)
